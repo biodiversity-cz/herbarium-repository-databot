@@ -10,7 +10,7 @@ def get_connection():
         port=os.getenv("DB_PORT", "5433"),
     )
 
-def register_databot(name: str, description: str, version: int, role: str) -> bool:
+def register_databot(name: str, description: str, version: int, role: str) ->  int | None:
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT register_databot(%s, %s, %s, %s)", (name, description, version, role))
