@@ -1,7 +1,11 @@
-FROM python:3.13-slim@sha256:4c2cf9917bd1cbacc5e9b07320025bdb7cdf2df7b0ceaccb55e9dd7e30987419
+FROM python:3.13@sha256:4ea77121eab13d9e71f2783d7505f5655b25bb7b2c263e8020aae3b555dbc0b2
 
 RUN pip install --no-cache-dir poetry
 RUN useradd --uid 1000  --shell /bin/bash appuser
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

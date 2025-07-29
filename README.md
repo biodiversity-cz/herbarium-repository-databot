@@ -13,6 +13,6 @@ poetry run python main.py
 
 or with docker:
 
-docker build -t mybot .
-docker run --rm  mybot connection_tester
-docker run --network="host" mybot connection_tester
+docker build -t databots .
+docker run --rm  databots no-ref-image-metrics
+docker run --network="host" databots connection_tester
