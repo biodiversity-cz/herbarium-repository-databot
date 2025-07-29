@@ -3,9 +3,10 @@ import logging
 from config import config
 
 class WorkerPool:
-    def __init__(self, job_queue, num_threads=config.get_application_config('threads')):
+    def __init__(self, job_queue, job_store):
         self.job_queue = job_queue
-        self.num_threads = num_threads
+        self.job_store = job_store
+        self.num_threads = config.get_application_config('threads',3)
         self.threads = []
 
     def _worker(self, worker_id):
@@ -15,11 +16,14 @@ class WorkerPool:
                 break
             try:
                 logging.info(f"[Worker {worker_id}] Running {job.__class__.__name__}")
+                run_id = self.job_store.mark_running(job.NAME)
                 job.run()
                 logging.info(f"[Worker {worker_id}] Finished")
             except Exception as e:
                 logging.exception(f"[Worker {worker_id}] Error: {e}")
+                self.job_store.mark_failed(job.NAME, run_id, e)
             finally:
+                self.job_store.mark_finished(job.NAME, run_id )
                 self.job_queue.task_done()
 
     def start(self):

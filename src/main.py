@@ -4,6 +4,9 @@ import threading
 from bots.test_connection import ConnectionTester
 from core.BotScheduler import BotScheduler
 from core.WorkerPool import WorkerPool
+from core.JobStore import JobStore
+from web.app import BotUI
+from config import config
 
 def main():
     parser = argparse.ArgumentParser()
@@ -19,12 +22,19 @@ def main():
         return
 
     job_queue = queue.Queue()
+    job_store = JobStore()
 
-    pool = WorkerPool(job_queue, num_threads=2)
+    # Worker
+    pool = WorkerPool(job_queue, job_store)
     pool.start()
 
+    # Scheduler
     scheduler = BotScheduler(job_queue, available_bots)
     scheduler.start()
+
+    # Flask
+    ui = BotUI(job_store, scheduler)
+    threading.Thread(target=lambda: ui.run(port=config.get_application_config('port',5000)), daemon=True).start()
 
     try:
         while True:

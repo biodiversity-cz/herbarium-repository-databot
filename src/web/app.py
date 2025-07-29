@@ -1,14 +1,24 @@
 from flask import Flask, jsonify
-from core import job_store
-from config.config import Config
+from config import config
 
-app = Flask(__name__)
-config = Config()
+class BotUI:
+    def __init__(self, job_store, scheduler):
+        self.job_store = job_store
+        self.scheduler = scheduler
+        self.app = Flask(__name__)
+        self._register_routes()
 
-@app.route("/status")
-def status():
-    return jsonify({
-        "running": job_store.get_running(),
-        "last_runs": job_store.get_history(5),
-        "next_scheduled": list(config.bots.keys())[:5],  # Zatím fake
-    })
+    def _register_routes(self):
+        @self.app.route("/")
+        def status():
+            return jsonify({
+                "running": self.job_store.get_running(),
+                "last_runs": self.job_store.get_history(config.get_application_config('history', 5)),
+                "next_scheduled": self.scheduler.get_next_runs(),
+            })
+
+    def run(self, **kwargs):
+        self.app.run(**kwargs)
+
+    def get_app(self):
+        return self.app

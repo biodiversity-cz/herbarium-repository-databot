@@ -13,8 +13,14 @@ class Config:
     def get_bot_config(self, bot_name):
         return self.bots.get(bot_name, {})
 
-    def get_database_config(self, value):
-        return self.connection.get(value, {})
+    def get_database_config(self, key, default=None):
+        value = self.connection.get(key, default)
+        if value is None:
+            return default
+        return value
 
-    def get_application_config(self, value):
-        return self.application.get(value, {})
+    def get_application_config(self, key, default=None):
+        value = self.application.get(key, default)
+        if value is None:
+            return default
+        return value

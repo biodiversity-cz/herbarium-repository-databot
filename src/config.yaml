@@ -1,5 +1,7 @@
 application:
   threads: 3
+  port: 5000
+  history: 5
 connection:
   host: 'localhost'
   port: 5433

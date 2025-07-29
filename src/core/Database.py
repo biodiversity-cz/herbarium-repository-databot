@@ -5,11 +5,11 @@ from config import config
 def get_connection():
 
     return psycopg2.connect(
-        dbname=config.get_database_config('database'),
-        user=config.get_database_config('user'),
-        password=config.get_database_config('password'),
-        host=config.get_database_config('host'),
-        port=config.get_database_config('port')
+        dbname=config.get_database_config('database', 'jacq_dev'),
+        user=config.get_database_config('user', 'jacq_dev'),
+        password=config.get_database_config('password', 'jacq_dev'),
+        host=config.get_database_config('host', 'localhost'),
+        port=config.get_database_config('port', 5433)
     )
 
 def register_databot(name: str, description: str, version: int, role: str) ->  int | None:
