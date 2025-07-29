@@ -1,12 +1,14 @@
 import argparse
 import queue
 import threading
-from bots.test_connection import ConnectionTester
+from bots.ConnectionTestDatabot import ConnectionTestDatabot
+from bots.NoReferenceImageMetricsDatabot import NoReferenceImageMetricsDatabot
 from core.BotScheduler import BotScheduler
 from core.WorkerPool import WorkerPool
 from core.JobStore import JobStore
 from web.app import BotUI
 from config import config
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -14,7 +16,8 @@ def main():
     args = parser.parse_args()
 
     available_bots = {
-        ConnectionTester.NAME: ConnectionTester,
+        ConnectionTestDatabot.NAME: ConnectionTestDatabot,
+        NoReferenceImageMetricsDatabot.NAME: NoReferenceImageMetricsDatabot,
     }
 
     if args.bot:
@@ -34,7 +37,7 @@ def main():
 
     # Flask
     ui = BotUI(job_store, scheduler)
-    threading.Thread(target=lambda: ui.run(port=config.get_application_config('port',5000)), daemon=True).start()
+    threading.Thread(target=lambda: ui.run(port=config.get_application_config('port', 5000)), daemon=True).start()
 
     try:
         while True:

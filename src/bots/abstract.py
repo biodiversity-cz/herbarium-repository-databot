@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from core.Database import register_databot
 import sys
+import json
 from core.DatabotRole import DatabotRole
 
 class AbstractDatabot(ABC):
@@ -34,4 +35,7 @@ class AbstractDatabot(ABC):
 
     @abstractmethod
     def run(self):
+        pass
+
+    def save_result(self, json_data: str):
         pass
