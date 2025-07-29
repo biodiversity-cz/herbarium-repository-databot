@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from db import register_databot
+from core.Database import register_databot
 import sys
-from DatabotRole import DatabotRole
+from core.DatabotRole import DatabotRole
 
 class AbstractDatabot(ABC):
     NAME: str = None

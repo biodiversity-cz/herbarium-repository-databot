@@ -1,5 +1,5 @@
 from bots.abstract import AbstractDatabot
-from DatabotRole import DatabotRole
+from core.DatabotRole import DatabotRole
 
 class ConnectionTester(AbstractDatabot):
     NAME = "connection_tester"
@@ -8,4 +8,4 @@ class ConnectionTester(AbstractDatabot):
     ROLE = DatabotRole.VALIDATOR
 
     def run(self):
-        print(f"do something")
+        print(f"Connection successful")

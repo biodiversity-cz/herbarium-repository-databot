@@ -1,0 +1,11 @@
+application:
+  threads: 3
+connection:
+  host: 'localhost'
+  port: 5433
+  database: 'jacq_dev'
+  user: 'databot'
+  password: 'jacq'
+bots:
+  connection_tester:
+    interval: "*/1 * * * *"

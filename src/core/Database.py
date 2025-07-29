@@ -1,13 +1,15 @@
 import psycopg2
-import os
+
+from config import config
 
 def get_connection():
+
     return psycopg2.connect(
-        dbname=os.getenv("DB_NAME", "jacq_test"),
-        user=os.getenv("DB_USER", "jacq"),
-        password=os.getenv("DB_PASS", "jacq"),
-        host=os.getenv("DB_HOST", "localhost"),
-        port=os.getenv("DB_PORT", "5433"),
+        dbname=config.get_database_config('database'),
+        user=config.get_database_config('user'),
+        password=config.get_database_config('password'),
+        host=config.get_database_config('host'),
+        port=config.get_database_config('port')
     )
 
 def register_databot(name: str, description: str, version: int, role: str) ->  int | None:
