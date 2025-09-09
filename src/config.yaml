@@ -7,7 +7,12 @@ connection:
   port: 5433
   database: 'jacq_dev'
   user: 'databot'
-  password: 'jacq'
+  password: 'databot'
+s3:
+  endpoint_url: http://localhost:9000
+  bucket: 'test-thumbs640'
+  access_key: 'test'
+  secret_key: 'testSecret'
 bots:
   connection_tester:
     interval: "*/1 * * * *"

@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from core.Database import register_databot
+from core.Database import register_databot, fetch_records, save_success_result, save_error_result
+from core.S3Storage import S3Storage
 import sys
-import json
+from utils.types import Score
 from core.DatabotRole import DatabotRole
 
 class AbstractDatabot(ABC):
@@ -31,11 +32,27 @@ class AbstractDatabot(ABC):
             sys.exit(1)
 
         self.DB_ID = db_id
+        self.s3storage = S3Storage()
         print(f"Databot ID:{self.DB_ID} name:{self.NAME} is running...")
 
     @abstractmethod
-    def run(self):
+    def compute(self, image_local_path: str) -> Score:
         pass
 
-    def save_result(self, json_data: str):
-        pass
+    def run(self):
+        records = fetch_records(self.DB_ID)
+        for rec_id, thumb_key in records:
+            local_path = None
+            try:
+                local_path = self.s3storage.download_file(thumb_key)
+
+                result = self.compute(local_path)
+
+                save_success_result(self.DB_ID, rec_id, result)
+                # print(f"✅ {rec_id} -> {result}")
+            except Exception as e:
+                save_error_result(self.DB_ID, rec_id, str(e))
+                print(f"❌ {rec_id} -> {e}")
+            finally:
+                if local_path:
+                    self.s3storage.cleanup_file(local_path)

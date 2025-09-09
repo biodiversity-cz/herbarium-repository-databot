@@ -1,7 +1,7 @@
 import argparse
 import queue
 import threading
-from bots.ConnectionTestDatabot import ConnectionTestDatabot
+from bots.DatabaseConnectionTestDatabot import DatabaseConnectionTestDatabot
 from bots.NoReferenceImageMetricsDatabot import NoReferenceImageMetricsDatabot
 from core.BotScheduler import BotScheduler
 from core.WorkerPool import WorkerPool
@@ -16,7 +16,7 @@ def main():
     args = parser.parse_args()
 
     available_bots = {
-        ConnectionTestDatabot.NAME: ConnectionTestDatabot,
+        DatabaseConnectionTestDatabot.NAME: DatabaseConnectionTestDatabot,
         NoReferenceImageMetricsDatabot.NAME: NoReferenceImageMetricsDatabot,
     }
 
