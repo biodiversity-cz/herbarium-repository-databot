@@ -101,11 +101,11 @@ class NoReferenceImageMetricsDatabot(AbstractDatabot):
 
         # JSON serializovatelný výstup
         values = [
-            {"name": "brisque_score", "value": round(brisque_score, 4)},
             {"name": "sharpness", "value": round(sharpness, 4)},
             {"name": "contrast", "value": round(contrast, 4)},
             {"name": "clarity", "value": round(clarity, 4)},
             {"name": "resolution", "value": round(resolution, 4)},
+            {"name": "brisque_score", "value": round(brisque_score, 4)},
         ]
         return values
 
