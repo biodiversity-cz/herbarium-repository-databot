@@ -14,5 +14,5 @@ s3:
   access_key: 'test'
   secret_key: 'testSecret'
 bots:
-  connection_tester:
+  database_connection_tester:
     interval: "*/1 * * * *"

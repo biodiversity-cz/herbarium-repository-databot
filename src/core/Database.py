@@ -1,5 +1,6 @@
 import json
 import psycopg2
+import math
 import psycopg2.extras
 from core.ResultStatus import ResultStatus
 from utils.types import Score
@@ -48,6 +49,7 @@ class Database:
             "SELECT databots.register_databot(%s, %s, %s, %s)",
             (name, description, version, role)
         )
+        self.conn.commit()
         return result["register_databot"] if result else None  # název sloupce podle DB funkce
 
 
@@ -66,13 +68,14 @@ class Database:
             """,
             (databot_id, limit)
         )
-        # teď vrací list dictů: row["id"], row["databot_thumb_filename"]
 
 
     def save_success_result(self, databot_id: int, photo_id: int, result: Score):
+        safe_result = self.sanitize(result)
+        json_data = json.dumps(safe_result)
         self.execute(
             "INSERT INTO databots.databot_results (databot_id, photo_id, result_data) VALUES (%s, %s, %s)",
-            (databot_id, photo_id, json.dumps(result))
+            (databot_id, photo_id, json_data)
         )
 
 
@@ -81,3 +84,14 @@ class Database:
             "INSERT INTO databots.databot_results (databot_id, photo_id, status, message) VALUES (%s, %s, %s, %s)",
             (databot_id, photo_id, ResultStatus.ERROR.value, message)
         )
+
+    def sanitize(self, obj):
+        if isinstance(obj, float):
+            if math.isnan(obj) or math.isinf(obj):
+                return None
+            return obj
+        elif isinstance(obj, dict):
+            return {k: self.sanitize(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self.sanitize(x) for x in obj]
+        return obj

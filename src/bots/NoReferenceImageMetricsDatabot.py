@@ -62,7 +62,7 @@ class NoReferenceImageMetricsDatabot(AbstractDatabot):
     </table>
     """
 
-    VERSION = 2
+    VERSION = 1
     ROLE = DatabotRole.SCANNER
 
     def compute(self, image_local_path: str) -> Score:

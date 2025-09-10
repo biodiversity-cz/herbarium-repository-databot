@@ -43,7 +43,11 @@ class AbstractDatabot(ABC):
 
     def run(self):
         records = self.DATABASE.fetch_records(self.DB_ID)
-        for rec_id, thumb_key in records:
+        # print(records)
+        # exit()
+        for record in records:
+            rec_id = record["id"]
+            thumb_key = record["databot_thumb_filename"]
             local_path = None
             try:
                 local_path = self.s3storage.download_file(thumb_key)
