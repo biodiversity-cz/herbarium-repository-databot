@@ -8,8 +8,61 @@ import numpy as np
 
 class NoReferenceImageMetricsDatabot(AbstractDatabot):
     NAME = "no-ref-image-metrics"
-    DESCRIPTION = "Calculates BRISQUE image quality score (1 = best, 100 = worst) [<a href=\"https://quality.nfdi4ing.de/en/latest/image_quality/BRISQUE.html\">link</a>]"
-    VERSION = 1
+    DESCRIPTION = """
+    Calculates BRISQUE image quality score (1 = best, 100 = worst) 
+    [<a href="https://quality.nfdi4ing.de/en/latest/image_quality/BRISQUE.html">link</a>] <br>
+    <br>
+    <table border="1" cellspacing="0" cellpadding="5">
+      <thead>
+        <tr>
+          <th>Variable</th>
+          <th>Name (EN)</th>
+          <th>Value range</th>
+          <th>Which is better?</th>
+          <th>Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>sharpness</td>
+          <td>Sharpness (Laplacian)</td>
+          <td>~0 to thousands+</td>
+          <td>Higher is better</td>
+          <td>Measures the amount of detail using the variance of the Laplacian filter.</td>
+        </tr>
+        <tr>
+          <td>contrast</td>
+          <td>Contrast</td>
+          <td>0 to 255</td>
+          <td>Higher is better</td>
+          <td>Standard deviation of brightness values – difference between light and dark.</td>
+        </tr>
+        <tr>
+          <td>clarity</td>
+          <td>Clarity (sharpness × contrast)</td>
+          <td>0 to ∞</td>
+          <td>Higher is better</td>
+          <td>Combined metric – subjective impression of cleanness and expressiveness.</td>
+        </tr>
+        <tr>
+          <td>resolution</td>
+          <td>Resolution (Sobel)</td>
+          <td>~0 to hundreds</td>
+          <td>Higher is better</td>
+          <td>Average edge strength detected by the Sobel operator.</td>
+        </tr>
+        <tr>
+          <td>brisque_score</td>
+          <td>Quality score (BRISQUE)</td>
+          <td>0 to 100</td>
+          <td>Lower is better</td>
+          <td>No-reference metric – the lower the score, the better the visual quality.</td>
+        </tr>
+      </tbody>
+    </table>
+    """
+
+    VERSION = 2
     ROLE = DatabotRole.SCANNER
 
     def compute(self, image_local_path: str) -> Score:
