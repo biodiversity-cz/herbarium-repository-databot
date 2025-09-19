@@ -15,10 +15,9 @@ class Config:
         return self.bots.get(bot_name, {})
 
     def get_database_config(self, key, default=None):
-        value = self.connection.get(key, default)
-        if value is None:
-            return default
-        return value
+        if key in self.connection:
+            return self.connection[key]
+        return os.getenv(f"DB_{key.upper()}", default)
 
     def get_application_config(self, key, default=None):
         value = self.application.get(key, default)
@@ -27,7 +26,6 @@ class Config:
         return value
 
     def get_s3_config(self, key: str, default=None):
-        value = self.s3.get(key, default)
-        if value is None:
-            return default
-        return value
+        if key in self.s3:
+            return self.s3[key]
+        return os.getenv(f"S3_{key.upper()}", default)

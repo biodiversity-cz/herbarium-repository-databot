@@ -10,7 +10,7 @@ connection:
   password: 'databot'
 s3:
   endpoint_url: http://localhost:9000
-  bucket: 'test-thumbs640'
+  bucket: 'test-thumbs1280'
   access_key: 'test'
   secret_key: 'testSecret'
 bots:
