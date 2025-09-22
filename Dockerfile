@@ -16,5 +16,7 @@ RUN poetry config virtualenvs.create false \
 COPY src ./src
 RUN chown -R appuser:appuser /app
 
+EXPOSE 5000
+
 USER appuser
 ENTRYPOINT ["python", "src/main.py"]

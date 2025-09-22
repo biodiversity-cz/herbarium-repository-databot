@@ -37,7 +37,7 @@ def main():
 
     # Flask
     ui = BotUI(job_store, scheduler)
-    threading.Thread(target=lambda: ui.run(port=config.get_application_config('port', 5000)), daemon=True).start()
+    threading.Thread(target=lambda: ui.run(host="0.0.0.0", port=config.get_application_config('port', 5000)), daemon=True).start()
 
     try:
         while True:
