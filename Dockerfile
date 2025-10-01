@@ -1,4 +1,4 @@
-FROM python:3.13@sha256:18634e45b29c0dd1a9a3a3d0781f9f8a221fe32ee7a853db01e9120c710ef535
+FROM python:3.13@sha256:081e7d0f7e520a653648602d10dcf11a832c8480b98698795d5fe8f456bbba4d
 
 RUN pip install --no-cache-dir poetry
 RUN useradd --uid 1000  --shell /bin/bash appuser
