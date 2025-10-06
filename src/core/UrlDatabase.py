@@ -1,11 +1,15 @@
 from core.BaseDatabase import BaseDatabase
 
 
-class Database(BaseDatabase):
-    def fetch_records(self, databot_id: int, limit: int = 1000):
+class UrlDatabase(BaseDatabase):
+    def fetch_url_records(self, databot_id: int, limit: int = 1000):
+        """
+        Fetch records for URL-based databots.
+        This method retrieves records that don't have results yet for this databot.
+        """
         return self.fetchall(
             """
-            SELECT p.id, databot_thumb_filename
+            SELECT p.id, p.uuid, p.scientific_name, p.family, p.institution_code, p.collection_code
             FROM photos p
                      LEFT JOIN databots.databot_results dr
                                ON dr.photo_id = p.id
