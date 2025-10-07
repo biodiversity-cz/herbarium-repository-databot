@@ -1,7 +1,7 @@
 import boto3
 import os
 import tempfile
-from config import config
+from src.config import config
 
 
 class S3Storage:

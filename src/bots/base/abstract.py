@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from core.Database import Database
-from core.S3Storage import S3Storage
+from src.core.infrastructure.database.database import Database
+from src.core.infrastructure.storage.s3_storage import S3Storage
 import sys
-from utils.types import Score
-from core.DatabotRole import DatabotRole
+from src.utils.types import Score
+from src.core.domain.DatabotRole import DatabotRole
 
 class AbstractDatabot(ABC):
     NAME: str = None

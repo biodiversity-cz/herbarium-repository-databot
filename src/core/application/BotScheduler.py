@@ -1,7 +1,7 @@
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from config import config
+from src.config import config
 from datetime import datetime
 
 class BotScheduler:
