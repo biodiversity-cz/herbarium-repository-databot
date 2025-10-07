@@ -3,9 +3,9 @@ import queue
 import threading
 from bots.DatabaseConnectionTestDatabot import DatabaseConnectionTestDatabot
 from bots.NoReferenceImageMetricsDatabot import NoReferenceImageMetricsDatabot
-from core.BotScheduler import BotScheduler
-from core.WorkerPool import WorkerPool
-from core.JobStore import JobStore
+from src.core.application.BotScheduler import BotScheduler
+from src.core.application.WorkerPool import WorkerPool
+from src.core.application.JobStore import JobStore
 from web.app import BotUI
 from config import config
 
