@@ -1,6 +1,6 @@
 import threading
 import logging
-from config import config
+from src.config import config
 
 class WorkerPool:
     def __init__(self, job_queue, job_store):

@@ -2,7 +2,7 @@ import io
 import matplotlib
 matplotlib.use("Agg")  # toto musí být *před* importem pyplot
 import matplotlib.pyplot as plt
-from core.Database import Database
+from src.core.infrastructure.database.database import Database
 
 class ChartService:
     def __init__(self, db: Database | None = None):

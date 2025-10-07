@@ -2,9 +2,9 @@ import json
 import psycopg2
 import math
 import psycopg2.extras
-from core.ResultStatus import ResultStatus
-from utils.types import Score
-from config import config
+from src.core.domain.ResultStatus import ResultStatus
+from src.utils.types import Score
+from src.config import config
 
 
 class BaseDatabase:

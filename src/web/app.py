@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_file, abort
-from config import config
-from services.chart_service import ChartService
+from src.config import config
+from src.services.chart_service import ChartService
 
 class BotUI:
     def __init__(self, job_store, scheduler):
