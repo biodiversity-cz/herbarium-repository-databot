@@ -16,3 +16,5 @@ s3:
 bots:
   database_connection_tester:
     interval: "*/1 * * * *"
+  cetaf_metadata:
+    interval: "*/1 * * * *"

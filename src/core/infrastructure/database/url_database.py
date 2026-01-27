@@ -14,8 +14,29 @@ class UrlDatabase(BaseDatabase):
                      LEFT JOIN databots.databot_results dr
                                ON dr.photo_id = p.id
                                    AND dr.databot_id = %s
-            WHERE p.status_id > 1 -- skip waiting/unprocessed
+                 JOIN photos_status s ON (s.id = p.status_id)
+            WHERE s.succession > 1 -- skip waiting/unprocessed
               AND dr.id IS NULL
+            ORDER BY p.id ASC
+                LIMIT %s
+            """,
+            (databot_id, limit)
+        )
+
+    def records_with_specimen(self, databot_id: int, limit: int = 1000):
+        """
+        Fetch records for URL-based databots.
+        """
+        return self.fetchall(
+            """
+            SELECT p.id, p.specimen_pid
+            FROM photos p
+                     LEFT JOIN databots.databot_results dr
+                               ON dr.photo_id = p.id
+                                   AND dr.databot_id = %s
+                     JOIN photos_status s ON (s.id = p.status_id)
+            WHERE s.succession >= 4 -- having specimen              
+                    AND (dr.id IS NULL)-- OR dr.created_at < now() - interval '3 months')
             ORDER BY p.id ASC
                 LIMIT %s
             """,
