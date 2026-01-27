@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    versioning-strategy: "digest"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
