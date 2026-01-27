@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from src.core.infrastructure.database.url_database import UrlDatabase
+from core.infrastructure.database.url_database import UrlDatabase
 import sys
-from src.utils.types import Score
-from src.core.domain.DatabotRole import DatabotRole
+from utils.types import Score
+from core.domain.DatabotRole import DatabotRole
 import requests
 import json
 

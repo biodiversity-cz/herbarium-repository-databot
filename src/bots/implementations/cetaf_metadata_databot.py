@@ -1,6 +1,6 @@
-from src.bots.base.abstract_url import AbstractUrlDatabot
-from src.core.domain.DatabotRole import DatabotRole
-from src.services.cetaf_sid_service import CetafSidService
+from bots.base.abstract_url import AbstractUrlDatabot
+from core.domain.DatabotRole import DatabotRole
+from services.cetaf_sid_service import CetafSidService
 
 
 class CetafMetadataDatabot(AbstractUrlDatabot):

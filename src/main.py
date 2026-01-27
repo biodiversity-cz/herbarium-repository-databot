@@ -1,13 +1,13 @@
 import argparse
 import queue
 import threading
-from src.bots.implementations.database_connection_test_databot import DatabaseConnectionTestDatabot
-from src.bots.implementations.no_reference_image_metrics_databot import NoReferenceImageMetricsDatabot
-from src.core.application.BotScheduler import BotScheduler
-from src.core.application.WorkerPool import WorkerPool
-from src.core.application.JobStore import JobStore
-from src.web.app import BotUI
-from src.config import config
+from bots.implementations.database_connection_test_databot import DatabaseConnectionTestDatabot
+from bots.implementations.no_reference_image_metrics_databot import NoReferenceImageMetricsDatabot
+from core.application.BotScheduler import BotScheduler
+from core.application.WorkerPool import WorkerPool
+from core.application.JobStore import JobStore
+from web.app import BotUI
+from config import config
 
 
 def main():

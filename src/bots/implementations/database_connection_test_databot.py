@@ -1,6 +1,6 @@
-from src.bots.base.abstract import AbstractDatabot
-from src.core.domain.DatabotRole import DatabotRole
-from src.utils.types import Score
+from bots.base.abstract import AbstractDatabot
+from core.domain.DatabotRole import DatabotRole
+from utils.types import Score
 
 
 class DatabaseConnectionTestDatabot(AbstractDatabot):

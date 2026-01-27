@@ -6,16 +6,16 @@ Databots for herbarium repository. Use Databot name as argument to run it immedi
 poetry env use python3.14
 poetry install
 
-poetry run python test.py database_connection_tester
-poetry run python test.py cetaf_metadata
-poetry run python test.py 
+poetry run python src/test.py database_connection_tester
+poetry run python src/test.py cetaf_metadata
+poetry run python src/test.py 
 ```
 
 or with docker:
 
 docker build -t databots .
 docker run --rm  databots no-ref-image-metrics
-docker run --network="host" databots connection_tester
+docker run --network="host" databots database_connection_tester
 
 [//]: # (obligatory branding for EOSC.CZ)
 <hr style="margin-top: 100px; margin-bottom: 20px">

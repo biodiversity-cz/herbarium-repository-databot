@@ -1,8 +1,8 @@
-from src.bots.base.abstract import AbstractDatabot
-from src.core.domain.DatabotRole import DatabotRole
+from bots.base.abstract import AbstractDatabot
+from core.domain.DatabotRole import DatabotRole
 from brisque import BRISQUE
 import cv2
-from src.utils.types import Score
+from utils.types import Score
 import numpy as np
 
 

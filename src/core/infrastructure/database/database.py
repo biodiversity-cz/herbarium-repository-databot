@@ -1,4 +1,4 @@
-from src.core.infrastructure.database.base_database import BaseDatabase
+from core.infrastructure.database.base_database import BaseDatabase
 
 
 class Database(BaseDatabase):
