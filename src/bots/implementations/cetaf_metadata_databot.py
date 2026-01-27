@@ -10,7 +10,7 @@ class CetafMetadataDatabot(AbstractUrlDatabot):
     ROLE = DatabotRole.SCANNER
 
     def selectRecords(self) -> dict:
-        return self.DATABASE.records_with_specimen(self.DB_ID, 100)
+        return self.DATABASE.records_with_specimen(self.DB_ID, 50)
 
     def get_url(self, record: dict) -> str:
         return record["specimen_pid"]
