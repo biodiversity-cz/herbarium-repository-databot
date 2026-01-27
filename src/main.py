@@ -3,6 +3,7 @@ import queue
 import threading
 from bots.implementations.database_connection_test_databot import DatabaseConnectionTestDatabot
 from bots.implementations.no_reference_image_metrics_databot import NoReferenceImageMetricsDatabot
+from bots.implementations.cetaf_metadata_databot import CetafMetadataDatabot
 from core.application.BotScheduler import BotScheduler
 from core.application.WorkerPool import WorkerPool
 from core.application.JobStore import JobStore
@@ -18,6 +19,8 @@ def main():
     available_bots = {
         DatabaseConnectionTestDatabot.NAME: DatabaseConnectionTestDatabot,
         NoReferenceImageMetricsDatabot.NAME: NoReferenceImageMetricsDatabot,
+        CetafMetadataDatabot.NAME: CetafMetadataDatabot,
+
     }
 
     if args.bot:
