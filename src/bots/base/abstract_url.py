@@ -39,45 +39,44 @@ class AbstractUrlDatabot(ABC):
         print(f"Databot ID:{self.DB_ID} name:{self.NAME} is running...")
 
     @abstractmethod
-    def compute(self, data: dict) -> Score:
-        """
-        Process the data fetched from the URL and return a Score.
-        This method must be implemented by subclasses.
-        """
-        pass
-
-    @abstractmethod
-    def get_data_url(self, record: dict) -> str:
+    def get_url(self, record: dict) -> str:
         """
         Generate the URL to fetch data for a given record.
         This method must be implemented by subclasses.
         """
         pass
 
+    @abstractmethod
     def fetch_data_from_url(self, url: str) -> dict:
         """
         Fetch data from the specified URL and return it as a dictionary.
+        This method must be implemented by subclasses.
         """
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            raise Exception(f"Failed to fetch data from {url}: {e}")
-        except json.JSONDecodeError as e:
-            raise Exception(f"Failed to parse JSON from {url}: {e}")
+        pass
+
+    def compute(self, data: dict) -> dict:
+        """
+        Process the data fetched from the URL and return a data in final format.
+        """
+        return data
+
+    def selectRecords(self) -> dict:
+        """
+        Process the data fetched from the URL and return a data in final format.
+        """
+        return self.DATABASE.fetch_url_records(self.DB_ID)
 
     def run(self):
         """
         Main execution method that fetches records from the database,
         retrieves data from URLs, processes it, and saves results.
         """
-        records = self.DATABASE.fetch_url_records(self.DB_ID)
+        records = self.selectRecords()
         for record in records:
             rec_id = record["id"]
             try:
                 # Get the URL for this record
-                url = self.get_data_url(record)
+                url = self.get_url(record)
                 
                 # Fetch data from the URL
                 data = self.fetch_data_from_url(url)
