@@ -18,3 +18,8 @@ bots:
 #    interval: "*/1 * * * *"
   cetaf_metadata:
     interval: "*/1 * * * *"
+#  hespi-v1-sheet-detector:
+#    interval: "*/30 * * * *"
+#    weights_path: "/hespi/v1/sheet/sheet-component.pt"
+#    conf_threshold: 0.25
+#    device: "cpu"
