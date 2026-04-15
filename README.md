@@ -6,10 +6,10 @@ Databots for herbarium repository. Use Databot name as argument to run it immedi
 poetry env use python3.13
 poetry install
 
-poetry run python src/test.py database_connection_tester
-poetry run python src/test.py cetaf_metadata
-poetry run python src/test.py hespi_v1_sheet_detector
-poetry run python src/test.py 
+poetry run python src/main.py database_connection_tester
+poetry run python src/main.py cetaf_metadata
+poetry run python src/main.py hespi_v1_sheet_detector
+poetry run python src/main.py 
 ```
 
 or with docker:
