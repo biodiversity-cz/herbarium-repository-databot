@@ -13,13 +13,14 @@ class HespiBboxDetectorDatabot(AbstractDatabot):
     VERSION = 1
     ROLE = DatabotRole.SCANNER
     DEVICE = "cpu"  # Default, can be overridden by BotScheduler
+    SERVICE = None
 
     def __init__(self):
         super().__init__()
+        self.SERVICE = HespiV1SheetService(device=self.DEVICE)
 
     def selectRecords(self) -> dict:
         return self.DATABASE.fetch_specimen_type_records(self.DB_ID, 50)
 
-    def compute(self, path: str) -> dict:
-        service = HespiV1SheetService(device=self.DEVICE)
-        return service.detect_from_file(path)
+    def compute(self, path: str, record: dict) -> dict:
+        return self.SERVICE.detect_from_file(path, record)

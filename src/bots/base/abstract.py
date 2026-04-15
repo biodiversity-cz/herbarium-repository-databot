@@ -38,7 +38,7 @@ class AbstractDatabot(ABC):
         print(f"Databot ID:{self.DB_ID} name:{self.NAME} is running...")
 
     @abstractmethod
-    def compute(self, image_local_path: str) -> Score:
+    def compute(self, image_local_path: str, record: dict) -> Score:
         pass
 
     def selectRecords(self) -> dict:
@@ -60,7 +60,7 @@ class AbstractDatabot(ABC):
 
                 local_path = self.s3storage.download_file(bucket_suffix, thumb_key)
 
-                result = self.compute(local_path)
+                result = self.compute(local_path, record)
 
                 self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
                 # print(f"✅ {rec_id} -> {result}")

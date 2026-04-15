@@ -65,7 +65,7 @@ class NoReferenceImageMetricsDatabot(AbstractDatabot):
     VERSION = 1
     ROLE = DatabotRole.SCANNER
 
-    def compute(self, image_local_path: str) -> Score:
+    def compute(self, image_local_path: str, record: dict) -> Score:
         image = cv2.imread(image_local_path, cv2.IMREAD_COLOR)
         if image is None:
             raise FileNotFoundError(f"Image file not found or cannot be read: {image_local_path}")

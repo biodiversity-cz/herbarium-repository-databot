@@ -9,7 +9,7 @@ class DatabaseConnectionTestDatabot(AbstractDatabot):
     VERSION = 2
     ROLE = DatabotRole.VALIDATOR
 
-    def compute(self, image_local_path: str) -> Score:
+    def compute(self, image_local_path: str, record: dict) -> Score:
         pass
 
     def run(self):

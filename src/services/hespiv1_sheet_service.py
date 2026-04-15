@@ -1,12 +1,5 @@
 import os
-import gzip
-import shutil
-import tempfile
-import urllib.request
 from pathlib import Path
-from datetime import datetime, timezone
-
-from PIL import Image
 from ultralytics import YOLO
 
 DEFAULT_WEIGHTS_URL = (
@@ -29,7 +22,7 @@ SHEET_COMPONENT_CATEGORIES = [
     "number",
 ]
 
-# The trained model internally uses "institutional label";
+# The trained YOLO model internally uses "institutional label";
 # hespi remaps it to "primary specimen label" after loading.
 MODEL_NAME_REMAP = {
     "institutional label": "primary specimen label",
@@ -54,9 +47,6 @@ class HespiV1SheetService:
     If the file does not exist at the resolved path it is automatically
     downloaded (and decompressed if ``.gz``) from the configured URL.
     """
-
-    # Class-level cache for verified weights path to avoid repeated file system checks
-    _weights_verified_path: str | None = None
 
     def __init__(
         self,
@@ -84,42 +74,11 @@ class HespiV1SheetService:
         self.imgsz = imgsz
         self._model: YOLO | None = None
 
-    # ------------------------------------------------------------------
-    # Weight management
-    # ------------------------------------------------------------------
 
-    def _ensure_weights(self) -> str:
-        # Return cached verified path if already checked
-        if HespiV1SheetService._weights_verified_path is not None:
-            return HespiV1SheetService._weights_verified_path
-
-        path = Path(self.weights_path)
-        if path.exists() and path.stat().st_size > 0:
-            HespiV1SheetService._weights_verified_path = str(path)
-            return str(path)
-
-        print(f"Model weights not found at {path}, downloading from {self.weights_url} ...")
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        if self.weights_url.endswith(".gz"):
-            gz_path = Path(str(path) + ".gz")
-            urllib.request.urlretrieve(self.weights_url, gz_path)
-            with gzip.open(gz_path, "rb") as f_in, open(path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-            gz_path.unlink()
-        else:
-            urllib.request.urlretrieve(self.weights_url, path)
-
-        if not path.exists() or path.stat().st_size == 0:
-            raise IOError(f"Failed to download model weights to {path}")
-
-        print(f"Model weights saved to {path}")
-        HespiV1SheetService._weights_verified_path = str(path)
-        return str(path)
 
     def _get_model(self) -> YOLO:
         if self._model is None:
-            weights = self._ensure_weights()
+            weights = self.weights_path
             self._model = YOLO(weights)
             # Use configured device (defaults to CPU to avoid CUDA compatibility issues)
             self._model.to(self.device)
@@ -151,21 +110,17 @@ class HespiV1SheetService:
     def detect_from_file(
         self,
         image_path: str,
-        image_id: int = 0,
-        source_url: str = "",
+        record: dict
     ) -> dict:
         """Run Sheet-Component detection on a local image file.
 
         Returns a complete COCO JSON dict (one image, N annotations).
-        Each annotation includes a non-standard ``score`` field with the
-        model's confidence for that detection.
+        Each annotation includes a non-standard "score" field with the
+        model's confidence for that detection, also bbox_normalized is non-standard but usefull value.
         """
         path = Path(image_path)
         if not path.exists():
             raise FileNotFoundError(f"Image not found: {path}")
-
-        im = Image.open(path)
-        width, height = im.size
 
         model = self._get_model()
         results = model.predict(
@@ -181,6 +136,8 @@ class HespiV1SheetService:
         name_to_id = self._category_name_to_id()
         annotations: list[dict] = []
         annotation_id = 0
+        master_width = record["width"]
+        master_height = record["height"]
 
         for boxes in predictions.boxes:
             conf = float(boxes.conf.cpu().item())
@@ -193,67 +150,33 @@ class HespiV1SheetService:
             if category_id is None:
                 continue
 
-            x0, y0, x1, y1 = boxes.xyxy.cpu().numpy()[0]
-            x = int(round(float(x0)))
-            y = int(round(float(y0)))
-            w = int(round(float(x1 - x0)))
-            h = int(round(float(y1 - y0)))
+            x0, y0, x1, y1 = boxes.xyxyn.cpu().numpy()[0]
+            x = int(round(x0 * master_width))
+            y = int(round(y0 * master_height))
+            w = int(round((x1 - x0) * master_width))
+            h = int(round((y1 - y0) * master_height))
 
             annotations.append({
                 "id": annotation_id,
-                "image_id": image_id,
+                "image_id": 0,
                 "category_id": category_id,
                 "bbox": [x, y, w, h],
+                "bbox_normalized": [float(x0), float(y0), float(x1), float(y1)],
                 "area": w * h,
-                "segmentation": [],
                 "iscrowd": 0,
                 "score": round(conf, 4),
             })
             annotation_id += 1
 
-        now = datetime.now(timezone.utc).isoformat()
-
         return {
-            # "info": {
-            #     "year": str(datetime.now().year),
-            #     "version": "1",
-            #     "description": "Herbarium sheet component bounding box detection (Sheet-Component model of HESPI v1)",
-            #     "contributor": "biodiversity.cz",
-            #     "url": source_url,
-            #     "date_created": now,
-            # },
-            # "licenses": [
-            #     {
-            #         "id": 1,
-            #         "url": "https://creativecommons.org/publicdomain/zero/1.0/",
-            #         "name": "Public Domain",
-            #     }
-            # ],
             "categories": self._build_categories(),
             "images": [
                 {
-                    "id": image_id,
-                    # "license": 1,
-                    # "file_name": path.name,
-                    "height": height,
-                    "width": width,
-                    # "date_captured": now,
+                    "id": 0,
+                    "height": master_height,
+                    "width": master_width,
                 }
             ],
             "annotations": annotations,
         }
 
-    def detect_from_url(self, url: str, image_id: int = 0) -> dict:
-        """Download an image from *url* and run detection.
-
-        The temporary file is removed after processing.
-        """
-        suffix = Path(url.split("?")[0].split("/")[-1]).suffix or ".jpg"
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-            tmp_path = tmp.name
-
-        try:
-            urllib.request.urlretrieve(url, tmp_path)
-            return self.detect_from_file(tmp_path, image_id=image_id, source_url=url)
-        finally:
-            Path(tmp_path).unlink(missing_ok=True)
