@@ -4,6 +4,7 @@ import threading
 
 from bots.implementations.cetaf_metadata_databot import CetafMetadataDatabot
 from bots.implementations.database_connection_test_databot import DatabaseConnectionTestDatabot
+from bots.implementations.hespi_bbox_detector import HespiBboxDetectorDatabot
 from bots.implementations.no_reference_image_metrics_databot import NoReferenceImageMetricsDatabot
 from core.application.BotScheduler import BotScheduler
 from core.application.WorkerPool import WorkerPool
@@ -21,6 +22,7 @@ def main():
         DatabaseConnectionTestDatabot.NAME: DatabaseConnectionTestDatabot,
         NoReferenceImageMetricsDatabot.NAME: NoReferenceImageMetricsDatabot,
         CetafMetadataDatabot.NAME: CetafMetadataDatabot,
+        HespiBboxDetectorDatabot.NAME: HespiBboxDetectorDatabot,
     }
 
     if args.bot:

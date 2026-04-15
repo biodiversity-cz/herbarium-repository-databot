@@ -12,6 +12,14 @@ class BotScheduler:
         self.scheduler = BackgroundScheduler()
 
     def _enqueue(self, bot_cls):
+        # Apply config values to bot class before instantiation
+        bot_name = bot_cls.NAME
+        bot_config = self.config.get_bot_config(bot_name)
+
+        # Set DEVICE from config for hespi_v1_sheet_detector
+        if bot_name == "hespi_v1_sheet_detector" and "device" in bot_config:
+            bot_cls.DEVICE = bot_config["device"]
+
         logging.info(f"Enqueueing {bot_cls.__name__}")
         self.job_queue.put(bot_cls())
 

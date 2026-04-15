@@ -16,13 +16,13 @@ class S3Storage:
             endpoint_url=endpoint,
         )
 
-    def download_file(self, key: str) -> str:
+    def download_file(self, bucket_suffix: str, key: str) -> str:
         """
         Stáhni soubor z S3 a vrať cestu k lokálnímu dočasnému souboru.
         """
         fd, tmp_path = tempfile.mkstemp(suffix=os.path.splitext(key)[-1])
         os.close(fd)
-        self.s3.download_file(self.bucket, key, tmp_path)
+        self.s3.download_file(self.bucket + bucket_suffix, key, tmp_path)
         return tmp_path
 
     def cleanup_file(self, path: str):

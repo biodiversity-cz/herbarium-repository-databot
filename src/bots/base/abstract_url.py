@@ -62,7 +62,7 @@ class AbstractUrlDatabot(ABC):
 
     def selectRecords(self) -> dict:
         """
-        Process the data fetched from the URL and return a data in final format.
+        Provides rows from the database that are not yet processed by this bot..
         """
         return self.DATABASE.fetch_url_records(self.DB_ID)
 

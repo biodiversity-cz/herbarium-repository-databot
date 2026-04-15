@@ -41,16 +41,24 @@ class AbstractDatabot(ABC):
     def compute(self, image_local_path: str) -> Score:
         pass
 
+    def selectRecords(self) -> dict:
+        """
+        Provides rows from the database that are not yet processed by this bot..
+        """
+        return self.DATABASE.fetch_records(self.DB_ID)
+
     def run(self):
-        records = self.DATABASE.fetch_records(self.DB_ID)
+        records = self.selectRecords()
         # print(records)
         # exit()
         for record in records:
             rec_id = record["id"]
             thumb_key = record["databot_thumb_filename"]
+            bucket_suffix = record["bucket_suffix"]
             local_path = None
             try:
-                local_path = self.s3storage.download_file(thumb_key)
+
+                local_path = self.s3storage.download_file(bucket_suffix, thumb_key)
 
                 result = self.compute(local_path)
 
