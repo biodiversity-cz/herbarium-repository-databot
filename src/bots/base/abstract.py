@@ -13,7 +13,14 @@ class AbstractDatabot(ABC):
     DB_ID: int = None
     DATABASE: Database = None
 
-    def __init__(self):
+    def __init__(self, config: dict = None):
+        """
+        Initialize the databot.
+
+        Args:
+            config: Bot-specific configuration dictionary from config.yaml.
+                   Can be None for bots that don't need additional configuration.
+        """
         if self.NAME is None:
             raise ValueError(f"{self.__class__.__name__} must define a NAME class attribute")
         if self.DESCRIPTION is None:
@@ -22,6 +29,10 @@ class AbstractDatabot(ABC):
             raise ValueError(f"{self.__class__.__name__} must define a VERSION class attribute")
         if self.ROLE is None:
             raise ValueError(f"{self.__class__.__name__} must define a ROLE class attribute")
+
+        # Store bot-specific configuration (instance-level, not class-level)
+        self.config = config or {}
+
         self.DATABASE = Database()
 
         try:

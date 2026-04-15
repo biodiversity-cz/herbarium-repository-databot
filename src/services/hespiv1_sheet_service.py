@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
-from ultralytics import YOLO
+import urllib.request
+import gzip
+import shutil
+
+from ultralytics import YOLO, settings
+import logging
 
 DEFAULT_WEIGHTS_URL = (
     "https://github.com/rbturnbull/hespi/releases/download/v0.4.0/sheet-component.pt.gz"
@@ -72,16 +77,45 @@ class HespiV1SheetService:
         )
         self.device = device or os.environ.get("HESPI_DEVICE", DEFAULT_DEVICE)
         self.imgsz = imgsz
+
+        # when called this service repeatedly, throws
+        # WARNING ⚠️ GitHub assets check failure for https://api.github.com/repos/ultralytics/assets/releases/tags/v8.4.0: 403 rate limit exceeded
+        settings.update({"sync": False})
+        logging.getLogger("ultralytics").setLevel(logging.ERROR)
+
         self._model: YOLO | None = None
 
+        # ------------------------------------------------------------------
+        # Weight management
+        # ------------------------------------------------------------------
 
+    def _ensure_weights(self) -> str:
+        path = Path(self.weights_path)
+        if path.exists() and path.stat().st_size > 0:
+            return str(path)
+
+        print(f"Model weights not found at {path}, downloading from {self.weights_url} ...")
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        if self.weights_url.endswith(".gz"):
+            gz_path = Path(str(path) + ".gz")
+            urllib.request.urlretrieve(self.weights_url, gz_path)
+            with gzip.open(gz_path, "rb") as f_in, open(path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+            gz_path.unlink()
+        else:
+            urllib.request.urlretrieve(self.weights_url, path)
+
+        if not path.exists() or path.stat().st_size == 0:
+            raise IOError(f"Failed to download model weights to {path}")
+
+        print(f"Model weights saved to {path}")
+        return str(path)
 
     def _get_model(self) -> YOLO:
         if self._model is None:
-            weights = self.weights_path
+            weights = self._ensure_weights()
             self._model = YOLO(weights)
-            # Use configured device (defaults to CPU to avoid CUDA compatibility issues)
-            self._model.to(self.device)
             self._model.model.names = {
                 key: MODEL_NAME_REMAP.get(name, name)
                 for key, name in self._model.names.items()

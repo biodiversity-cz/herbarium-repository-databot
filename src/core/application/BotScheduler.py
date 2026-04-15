@@ -2,7 +2,6 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from config import config
-from datetime import datetime
 
 class BotScheduler:
     def __init__(self, job_queue, bot_registry: dict):
@@ -12,16 +11,18 @@ class BotScheduler:
         self.scheduler = BackgroundScheduler()
 
     def _enqueue(self, bot_cls):
-        # Apply config values to bot class before instantiation
+        """
+        Enqueue a bot for execution with its configuration.
+
+        Args:
+            bot_cls: The bot class to instantiate and enqueue.
+        """
         bot_name = bot_cls.NAME
         bot_config = self.config.get_bot_config(bot_name)
 
-        # Set DEVICE from config for hespi_v1_sheet_detector
-        if bot_name == "hespi_v1_sheet_detector" and "device" in bot_config:
-            bot_cls.DEVICE = bot_config["device"]
-
-        logging.info(f"Enqueueing {bot_cls.__name__}")
-        self.job_queue.put(bot_cls())
+        logging.info(f"Enqueueing {bot_cls.__name__} with config: {bot_config}")
+        # Pass config directly to the bot instance (thread-safe, no class-level state)
+        self.job_queue.put(bot_cls(config=bot_config))
 
     def schedule_all(self):
         for bot_name, bot_cls in self.bot_registry.items():

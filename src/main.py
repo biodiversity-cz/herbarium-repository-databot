@@ -17,16 +17,22 @@ def main():
     parser.add_argument("bot", nargs="?", help="Run only this bot")
     args = parser.parse_args()
 
+    # Bot registry: key must match NAME attribute in bot class AND config.yaml
     available_bots = {
         DatabaseConnectionTestDatabot.NAME: DatabaseConnectionTestDatabot,
         NoReferenceImageMetricsDatabot.NAME: NoReferenceImageMetricsDatabot,
         CetafMetadataDatabot.NAME: CetafMetadataDatabot,
         HespiBboxDetectorDatabot.NAME: HespiBboxDetectorDatabot,
-
     }
 
     if args.bot:
-        available_bots[args.bot]().run()
+        # For direct execution without scheduler, pass empty config
+        if bot_cls := available_bots.get(args.bot):
+            bot_cls(config={}).run()
+        else:
+            print(f"Unknown bot: {args.bot}")
+            print(f"Available bots: {', '.join(available_bots.keys())}")
+            return
         return
 
     job_queue = queue.Queue()

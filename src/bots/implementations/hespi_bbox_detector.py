@@ -12,12 +12,28 @@ class HespiBboxDetectorDatabot(AbstractDatabot):
     )
     VERSION = 1
     ROLE = DatabotRole.SCANNER
-    DEVICE = "cpu"  # Default, can be overridden by BotScheduler
-    SERVICE = None
 
-    def __init__(self):
-        super().__init__()
-        self.SERVICE = HespiV1SheetService(device=self.DEVICE)
+    def __init__(self, config: dict = None):
+        """
+        Initialize the Hespi bounding box detector databot.
+
+        Args:
+            config: Bot-specific configuration with optional keys:
+                   - weights_path: Path to the YOLO model weights
+                   - conf_threshold: Confidence threshold for detections (0.0-1.0)
+                   - device: Device to run inference on ('cpu', 'cuda', etc.)
+        """
+        super().__init__(config)
+        # Extract config values with defaults
+        weights_path = self.config.get("weights_path")
+        conf_threshold = self.config.get("conf_threshold")
+        device = self.config.get("device", "cpu")
+
+        self.SERVICE = HespiV1SheetService(
+            weights_path=weights_path,
+            confidence_threshold=conf_threshold,
+            device=device
+        )
 
     def selectRecords(self) -> dict:
         return self.DATABASE.fetch_specimen_type_records(self.DB_ID, 50)
