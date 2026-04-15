@@ -9,8 +9,16 @@ license = "MIT"
 readme = "README.md"
 package-mode = false
 
+# force to accept CPU as equal to non marked version
+[[tool.poetry.source]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
 [tool.poetry.dependencies]
 python = "^3.13"
+torch = { version = "2.7.1+cpu", source = "pytorch-cpu" } # Ultralytics nemá CPU/GPU split v Poetry, fixuji to co jinak Ultralytics samy dávají, nainstalováno v Docker file přes Ppip jen s CPU support
+torchvision = { version = "0.22.1+cpu", source = "pytorch-cpu" } # dtto
 psycopg2-binary = "^2"
 pyyaml = "^6"
 flask = "^3"
@@ -19,4 +27,4 @@ brisque = "^0"
 boto3 = "^1"
 matplotlib = "^3"
 ultralytics = "^8"
-pillow = "^11"
+pillow = "11.3.0"
