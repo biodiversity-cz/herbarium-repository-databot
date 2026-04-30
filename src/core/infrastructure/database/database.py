@@ -10,7 +10,7 @@ class Database(BaseDatabase):
                      LEFT JOIN databots.databot_results dr
                                ON dr.photo_id = p.id
                                    AND dr.databot_id = %s
-            WHERE p.status_id > 1 -- skip waiting/unprocessed
+            WHERE p.status_id > 2 -- skip waiting/unprocessed
               AND dr.id IS NULL
             ORDER BY p.id ASC
                 LIMIT %s
@@ -27,7 +27,7 @@ class Database(BaseDatabase):
                      LEFT JOIN databots.databot_results dr
                                ON dr.photo_id = p.id
                                    AND dr.databot_id = %s
-            WHERE p.status_id > 1 -- skip waiting/unprocessed
+            WHERE p.status_id > 2 -- skip waiting/unprocessed
               AND p.type_id = 1   -- only "Specimen" type of photos
               AND dr.id IS NULL
             ORDER BY p.id ASC
