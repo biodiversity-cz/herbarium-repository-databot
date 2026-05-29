@@ -63,7 +63,7 @@ class UrlDatabase(BaseDatabase):
                     WHEN dr.status = 'ok' THEN 1
                     ELSE 0
                 END ASC, -- fix those with errors first
-                dr.created_at ASC,
+                dr.created_at ASC
                 LIMIT %s
             """,
             (databot_id, limit)
