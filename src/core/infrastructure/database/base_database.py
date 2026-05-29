@@ -63,12 +63,23 @@ class BaseDatabase:
             (databot_id, photo_id, json_data)
         )
 
+    def upsert_success_result(self, databot_id: int, photo_id: int, result: Score):
+        """
+        Save successful result for databot.
+        """
+        safe_result = self.sanitize(result)
+        json_data = json.dumps(safe_result)
+        self.execute(
+            "INSERT INTO databots.databot_results (databot_id, photo_id, result_data) VALUES (%s, %s, %s) ON CONFLICT (databot_id, photo_id) DO UPDATE SET result_data = EXCLUDED.result_data, created_at = NOW(), message = NULL, status = 'ok'",
+            (databot_id, photo_id, json_data)
+        )
+
     def save_error_result(self, databot_id: int, photo_id: int, message: str):
         """
         Save error result for databot.
         """
         self.execute(
-            "INSERT INTO databots.databot_results (databot_id, photo_id, status, message) VALUES (%s, %s, %s, %s)",
+            "INSERT INTO databots.databot_results (databot_id, photo_id, status, message) VALUES (%s, %s, %s, %s) ON CONFLICT (databot_id, photo_id) DO UPDATE SET message = EXCLUDED.message, created_at = NOW()",
             (databot_id, photo_id, ResultStatus.ERROR.value, message)
         )
 

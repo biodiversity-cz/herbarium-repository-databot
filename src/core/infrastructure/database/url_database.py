@@ -42,3 +42,29 @@ class UrlDatabase(BaseDatabase):
             """,
             (databot_id, limit)
         )
+
+    def cetaf_harvest(self, databot_id: int, limit: int = 1000):
+        """
+        Fetch records for URL-based databots.
+        """
+        return self.fetchall(
+            """
+            SELECT p.id, p.specimen_pid
+            FROM photos p
+                     LEFT JOIN databots.databot_results dr
+                               ON dr.photo_id = p.id
+                                   AND dr.databot_id = %s
+                     JOIN photos_status s ON (s.id = p.status_id)
+            WHERE s.succession >= 4 -- having specimen              
+                    AND (dr.id IS NULL OR dr.created_at < now() - interval '2 months')
+            ORDER BY
+                (dr.id IS NULL) DESC, -- true (1) > false (0)
+                 CASE
+                    WHEN dr.status = 'ok' THEN 1
+                    ELSE 0
+                END ASC, -- fix those with errors first
+                dr.created_at ASC,
+                LIMIT %s
+            """,
+            (databot_id, limit)
+        )

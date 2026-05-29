@@ -4,3 +4,4 @@ class DatabotRole(str, Enum):
     EXPORTER = "exporter"
     VALIDATOR = "validator"
     SCANNER = "scanner"
+    SYNCHRONIZER = "synchronizer"
