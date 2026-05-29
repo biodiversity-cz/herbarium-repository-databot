@@ -70,7 +70,7 @@ class BaseDatabase:
         safe_result = self.sanitize(result)
         json_data = json.dumps(safe_result)
         self.execute(
-            "INSERT INTO databots.databot_results (databot_id, photo_id, result_data) VALUES (%s, %s, %s) ON CONFLICT (databot_id, photo_id) DO UPDATE SET result_data = EXCLUDED.result_data, created_at = NOW(), message = NULL, status = 'ok'",
+            "INSERT INTO databots.databot_results (databot_id, photo_id, result_data) VALUES (%s, %s, %s) ON CONFLICT (databot_id, photo_id) DO UPDATE SET result_data = EXCLUDED.result_data, lastedit_timestamp = NOW(), message = NULL, status = 'ok'",
             (databot_id, photo_id, json_data)
         )
 
@@ -79,7 +79,7 @@ class BaseDatabase:
         Save error result for databot.
         """
         self.execute(
-            "INSERT INTO databots.databot_results (databot_id, photo_id, status, message) VALUES (%s, %s, %s, %s) ON CONFLICT (databot_id, photo_id) DO UPDATE SET message = EXCLUDED.message, created_at = NOW()",
+            "INSERT INTO databots.databot_results (databot_id, photo_id, status, message) VALUES (%s, %s, %s, %s) ON CONFLICT (databot_id, photo_id) DO UPDATE SET message = EXCLUDED.message, lastedit_timestamp = NOW()",
             (databot_id, photo_id, ResultStatus.ERROR.value, message)
         )
 
