@@ -56,7 +56,9 @@ class UrlDatabase(BaseDatabase):
                                    AND dr.databot_id = %s
                      JOIN photos_status s ON (s.id = p.status_id)
             WHERE s.succession >= 4 -- having specimen              
-                    AND (dr.id IS NULL OR dr.status != 'ok' OR dr.lastedit_timestamp < now() - interval '2 months')
+                    AND (dr.id IS NULL 
+                OR (dr.status != 'ok' AND dr.lastedit_timestamp < now() - interval '2 days') 
+                OR dr.lastedit_timestamp < now() - interval '2 months')
             ORDER BY
                 (dr.id IS NULL) DESC, -- true (1) > false (0)
                  CASE
