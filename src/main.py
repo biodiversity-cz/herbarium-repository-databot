@@ -5,6 +5,7 @@ from bots.implementations.database_connection_test_databot import DatabaseConnec
 from bots.implementations.hespi_bbox_detector import HespiBboxDetectorDatabot
 from bots.implementations.no_reference_image_metrics_databot import NoReferenceImageMetricsDatabot
 from bots.implementations.cetaf_metadata_databot import CetafMetadataDatabot
+from bots.implementations.vouvis_metadata_databot import VouvisDatabot
 from core.application.BotScheduler import BotScheduler
 from core.application.WorkerPool import WorkerPool
 from core.application.JobStore import JobStore
@@ -23,6 +24,7 @@ def main():
         NoReferenceImageMetricsDatabot.NAME: NoReferenceImageMetricsDatabot,
         CetafMetadataDatabot.NAME: CetafMetadataDatabot,
         HespiBboxDetectorDatabot.NAME: HespiBboxDetectorDatabot,
+        VouvisDatabot.NAME: VouvisDatabot,
     }
 
     if args.bot:

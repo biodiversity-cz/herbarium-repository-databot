@@ -10,13 +10,16 @@ connection:
   password: 'databot'
 s3:
   endpoint_url: http://localhost:9000
-  bucket: 'test-thumbs1280'
+  thumb_bucket: 'test-thumbs1280'
+  fullsize_bucket: 'test-fullsize'
   access_key: 'test'
   secret_key: 'testSecret'
 bots:
 #  database_connection_tester:
 #    interval: "*/1 * * * *"
   cetaf_metadata:
+    interval: "*/1 * * * *"
+  vouvis_v1_sheet_detector:
     interval: "*/1 * * * *"
   hespi_v1_sheet_detector:
     interval: "*/1 * * * *"

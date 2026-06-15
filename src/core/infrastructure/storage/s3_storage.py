@@ -1,12 +1,20 @@
 import boto3
-import os
-import tempfile
 from config import config
+from enum import Enum
+
+
+class BucketType(Enum):
+    """Typ bucketu pro uložení obrázků."""
+    THUMB = "thumb"
+    FULLSIZE = "fullsize"
 
 
 class S3Storage:
-    def __init__(self, bucket: str | None = None):
-        self.bucket = bucket or config.get_s3_config("bucket")
+    def __init__(self, thumb_bucket: str | None = None, fullsize_bucket: str | None = None):
+        # Získání konfigurace bucketů - pokud nejsou explicitně zadány, použije se konfigurace
+        self.thumb_bucket = thumb_bucket or config.get_s3_config("thumb_bucket")
+        self.fullsize_bucket = fullsize_bucket or config.get_s3_config("fullsize_bucket")
+        
         endpoint = config.get_s3_config("endpoint_url", None)
 
         self.s3 = boto3.client(
@@ -16,18 +24,22 @@ class S3Storage:
             endpoint_url=endpoint,
         )
 
-    def download_file(self, bucket_suffix: str, key: str) -> str:
-        """
-        Stáhni soubor z S3 a vrať cestu k lokálnímu dočasnému souboru.
-        """
-        fd, tmp_path = tempfile.mkstemp(suffix=os.path.splitext(key)[-1])
-        os.close(fd)
-        self.s3.download_file(self.bucket + bucket_suffix, key, tmp_path)
-        return tmp_path
+    def _get_bucket(self, bucket_type: BucketType) -> str:
+        """Získej název bucketu podle typu."""
+        if bucket_type == BucketType.THUMB:
+            return self.thumb_bucket
+        elif bucket_type == BucketType.FULLSIZE:
+            return self.fullsize_bucket
 
-    def cleanup_file(self, path: str):
-        """Smaž dočasný lokální soubor."""
-        try:
-            os.remove(path)
-        except FileNotFoundError:
-            pass
+    def download_file_to_path(self, bucket_type: BucketType, suffix: str, key: str, local_path: str):
+        """
+        Stáhni soubor z S3 na zadanou lokální cestu.
+        
+        Args:
+            bucket_type: Typ bucketu (BucketType.THUMB nebo BucketType.FULLSIZE)
+            suffix: Suffix pro číslování bucketů (např. '-1', '-2' atd.)
+            key: Klíč souboru v S3
+            local_path: Cesta kde uložit stažený soubor
+        """
+        bucket = self._get_bucket(bucket_type)
+        self.s3.download_file(bucket + suffix, key, local_path)

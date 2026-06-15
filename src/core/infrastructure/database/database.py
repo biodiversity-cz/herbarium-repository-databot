@@ -5,7 +5,7 @@ class Database(BaseDatabase):
     def fetch_records(self, databot_id: int, limit: int = 1000):
         return self.fetchall(
             """
-            SELECT p.id, bucket_suffix, databot_thumb_filename
+            SELECT p.id, bucket_suffix, databot_thumb_filename, archive_filename
             FROM photos p
                      LEFT JOIN databots.databot_results dr
                                ON dr.photo_id = p.id

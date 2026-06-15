@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from core.infrastructure.database.database import Database
-from core.infrastructure.storage.s3_storage import S3Storage
+from core.infrastructure.storage.s3_storage import S3Storage, BucketType
 import sys
+import os
+import tempfile
 from utils.types import Score
 from core.domain.DatabotRole import DatabotRole
 
@@ -68,8 +70,17 @@ class AbstractDatabot(ABC):
             bucket_suffix = record["bucket_suffix"]
             local_path = None
             try:
-
-                local_path = self.s3storage.download_file(bucket_suffix, thumb_key)
+                # Vytvoř dočasný soubor pro stažení miniatury
+                fd, local_path = tempfile.mkstemp(suffix=os.path.splitext(thumb_key)[-1])
+                os.close(fd)
+                
+                # Stažení miniatury z thumb bucketu s suffixem pro číslování
+                self.s3storage.download_file_to_path(
+                    BucketType.THUMB, 
+                    bucket_suffix, 
+                    thumb_key,
+                    local_path
+                )
 
                 result = self.compute(local_path, record)
 
@@ -80,4 +91,7 @@ class AbstractDatabot(ABC):
                 print(f"❌ {rec_id} -> {e}")
             finally:
                 if local_path:
-                    self.s3storage.cleanup_file(local_path)
+                    try:
+                        os.remove(local_path)
+                    except FileNotFoundError:
+                        pass
