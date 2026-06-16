@@ -61,7 +61,7 @@ class VouvisDatabot(AbstractDatabot):
                 if response.status_code == 200:
                     result = response.json()
                     # Uložení úspěšného výsledku
-                    self.DATABASE.save_success_result(self.DB_ID, rec_id, json.dumps(result))
+                    self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
                     print(f"✅ {rec_id} -> success")
                 else:
                     error_msg = f"API returned status {response.status_code}: {response.text}"
