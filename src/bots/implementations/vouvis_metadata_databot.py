@@ -22,7 +22,7 @@ class VouvisDatabot(AbstractDatabot):
     API_ENDPOINT = "http://vouvis-api/v1/transcribe-full"
 
     def selectRecords(self) -> dict:
-        return self.DATABASE.fetch_records(self.DB_ID)
+        return self.DATABASE.fetch_records(self.DB_ID, 2)
 
     def compute(self, image_local_path: str, record: dict) -> Score:
         pass
