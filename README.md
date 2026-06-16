@@ -9,6 +9,7 @@ poetry install
 poetry run python src/main.py database_connection_tester
 poetry run python src/main.py cetaf_metadata
 poetry run python src/main.py hespi_v1_sheet_detector
+poetry run python src/main.py vouvis_v1_sheet_detector
 poetry run python src/main.py 
 ```
 
@@ -16,6 +17,7 @@ or with docker:
 
 docker build -t databots .
 docker run --rm  databots no-ref-image-metrics
+docker run --rm  databots vouvis_v1_sheet_detector
 docker run --network="host" databots database_connection_tester
 
 [//]: # (obligatory branding for EOSC.CZ)

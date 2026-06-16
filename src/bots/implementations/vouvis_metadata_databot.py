@@ -1,6 +1,7 @@
 from bots.base.abstract import AbstractDatabot
 from core.domain.DatabotRole import DatabotRole
 from core.infrastructure.storage.s3_storage import BucketType
+from utils.types import Score
 import os
 import tempfile
 import requests
@@ -22,6 +23,9 @@ class VouvisDatabot(AbstractDatabot):
 
     def selectRecords(self) -> dict:
         return self.DATABASE.fetch_records(self.DB_ID)
+
+    def compute(self, image_local_path: str, record: dict) -> Score:
+        pass
 
     def run(self):
         records = self.selectRecords()
