@@ -19,7 +19,7 @@ class VouvisDatabot(AbstractDatabot):
     ROLE = DatabotRole.SCANNER
     
     # URL pro API endpoint - upravte podle potřeby
-    API_ENDPOINT = "http://vouvis-api/v1/transcribe-full"
+    API_ENDPOINT = "http://vouvis-herbarium-svc/v1/transcribe-full"
 
     def selectRecords(self) -> dict:
         return self.DATABASE.fetch_records(self.DB_ID, 2)
