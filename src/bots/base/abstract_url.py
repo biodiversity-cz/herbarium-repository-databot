@@ -1,23 +1,29 @@
+import logging
 from abc import ABC, abstractmethod
-from core.infrastructure.database.url_database import UrlDatabase
-import sys
-from utils.types import Score
-from core.domain.DatabotRole import DatabotRole
+
 import requests
-import json
+
+from bots.base.lifecycle import DatabotLifecycle
+from core.domain.DatabotRole import DatabotRole
+from core.infrastructure.database.url_database import UrlDatabase
+
+logger = logging.getLogger(__name__)
 
 
-class AbstractUrlDatabot(ABC):
+class AbstractUrlDatabot(DatabotLifecycle, ABC):
     NAME: str = None
     DESCRIPTION: str = None
     VERSION: int = None
     ROLE: DatabotRole = None
-    DB_ID: int = None
-    DATABASE: UrlDatabase = None
+    DATABASE_CLASS = UrlDatabase
 
     def __init__(self, config: dict = None):
         """
         Initialize the URL-based databot.
+
+        Only cheap, connection-less state is created here. Registration happens
+        lazily on the first access to DB_ID (inside run()), so constructing or
+        enqueueing a bot no longer opens a database connection.
 
         Args:
             config: Bot-specific configuration dictionary from config.yaml.
@@ -34,20 +40,6 @@ class AbstractUrlDatabot(ABC):
 
         # Store bot-specific configuration (instance-level, not class-level)
         self.config = config or {}
-
-        self.DATABASE = UrlDatabase()
-
-        try:
-            db_id = self.DATABASE.register_databot(self.NAME, self.DESCRIPTION, self.VERSION, self.ROLE.value)
-            if db_id is None:
-                print(f"❌ Registration of databot '{self.NAME}' failed – probably higher version already registered?", file=sys.stderr)
-                sys.exit(1)
-        except Exception as e:
-            print(f"❌ Registration error for bot '{self.NAME}': {e}", file=sys.stderr)
-            sys.exit(1)
-
-        self.DB_ID = db_id
-        print(f"Databot ID:{self.DB_ID} name:{self.NAME} is running...")
 
     @abstractmethod
     def get_url(self, record: dict) -> str:
@@ -81,26 +73,28 @@ class AbstractUrlDatabot(ABC):
         """
         Main execution method that fetches records from the database,
         retrieves data from URLs, processes it, and saves results.
+
+        Database connections are borrowed per statement from the shared pool,
+        so nothing has to be closed here.
         """
-        try:
-            records = self.selectRecords()
-            for record in records:
-                rec_id = record["id"]
-                try:
-                    # Get the URL for this record
-                    url = self.get_url(record)
+        records = self.selectRecords()
+        logger.info("%s: %s record(s) to process", self.NAME, len(records) if records else 0)
 
-                    # Fetch data from the URL
-                    data = self.fetch_data_from_url(url)
+        for record in records:
+            rec_id = record["id"]
+            try:
+                # Get the URL for this record
+                url = self.get_url(record)
 
-                    # Process the data
-                    result = self.compute(data)
+                # Fetch data from the URL
+                data = self.fetch_data_from_url(url)
 
-                    # Save successful result
-                    self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
-                except Exception as e:
-                    # Save error result
-                    self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
-                    print(f"❌ {rec_id} -> {e}")
-        finally:
-            self.DATABASE.close()
+                # Process the data
+                result = self.compute(data)
+
+                # Save successful result
+                self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
+            except Exception as e:
+                # Save error result
+                self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
+                logger.error("❌ %s: record %s -> %s", self.NAME, rec_id, e)

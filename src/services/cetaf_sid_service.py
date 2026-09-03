@@ -1,6 +1,8 @@
 import requests
 import xml.etree.ElementTree as ET
 
+from config import config
+
 class CetafSidService:
 
     NAMESPACES = {
@@ -46,7 +48,13 @@ class CetafSidService:
         """
         headers = {"Accept": "application/rdf+xml"}
         try:
-            response = requests.get(url, headers=headers, allow_redirects=True)
+            # Timeout je (connect, read) - bez něj visí worker na mrtvém endpointu.
+            response = requests.get(
+                url,
+                headers=headers,
+                allow_redirects=True,
+                timeout=config.get_http_timeout("read_timeout", 60),
+            )
             response.raise_for_status()
         except requests.RequestException as e:
             raise Exception(f"Failed to fetch data from {url}: {e}")

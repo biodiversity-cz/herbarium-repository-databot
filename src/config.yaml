@@ -2,12 +2,46 @@ application:
   threads: 3
   port: 5000
   history: 5
+  # Max. počet běhů, které si JobStore drží v paměti
+  history_max: 200
+  # Max. počet úkolů ve frontě; při zaplnění scheduler další běh přeskočí
+  queue_maxsize: 100
+  # Kolik sekund při vypínání počká na rozběhnuté úkoly (musí být pod
+  # terminationGracePeriodSeconds v Kubernetes)
+  worker_shutdown_timeout: 20
+  # HTTP server (waitress) - vláken na obsluhu requestů
+  web_threads: 8
+  web_channel_timeout: 120
+  web_connection_limit: 100
 connection:
   host: 'localhost'
   port: 5433
   database: 'jacq_dev'
   user: 'databot'
   password: 'databot'
+  # Bounded connection pool (přepsatelně i env DB_POOL_<KEY>)
+  pool:
+    min: 1
+    max: 5
+    # Jak dlouho čekat na volné spojení, pak PoolExhausted
+    checkout_timeout: 10
+    connect_timeout: 10
+    # Ověření spojení SELECT 1 při pujčce
+    healthcheck: true
+    # Spojení nečinné déle než tolik sekund se zavře
+    max_idle: 300
+    # 0 = žádný limit (analytické dotazy běží déle); nastaveno na role v DB
+    statement_timeout: 0
+    application_name: 'herbarium-databot'
+http:
+  connect_timeout: 5
+  read_timeout: 60
+  # Dlouhé výpočetní endpointy (transkripce)
+  ml_read_timeout: 600
+  weights_read_timeout: 300
+  s3_connect_timeout: 5
+  s3_read_timeout: 60
+  s3_max_attempts: 3
 s3:
   endpoint_url: http://localhost:9000
   thumb_bucket: 'test-thumbs1280'
@@ -26,5 +60,6 @@ bots:
     weights_path: "/hespi/v1/sheet-component.pt"
     conf_threshold: 0.25
     device: "cpu"
-#  no_ref_image_metrics:
+#  no-ref-image-metrics:
 #    interval: "*/1 * * * *"
+

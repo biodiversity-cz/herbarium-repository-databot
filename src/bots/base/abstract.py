@@ -1,23 +1,32 @@
-from abc import ABC, abstractmethod
-from core.infrastructure.database.database import Database
-from core.infrastructure.storage.s3_storage import S3Storage, BucketType
-import sys
+import logging
 import os
 import tempfile
-from utils.types import Score
-from core.domain.DatabotRole import DatabotRole
+from abc import ABC, abstractmethod
 
-class AbstractDatabot(ABC):
+from bots.base.lifecycle import DatabotLifecycle
+from core.infrastructure.database.database import Database
+from core.infrastructure.storage.s3_storage import BucketType
+from core.domain.DatabotRole import DatabotRole
+from utils.types import Score
+
+logger = logging.getLogger(__name__)
+
+
+class AbstractDatabot(DatabotLifecycle, ABC):
     NAME: str = None
     DESCRIPTION: str = None
     VERSION: int = None
     ROLE: DatabotRole = None
-    DB_ID: int = None
-    DATABASE: Database = None
+    DATABASE_CLASS = Database
 
     def __init__(self, config: dict = None):
         """
         Initialize the databot.
+
+        Only cheap, connection-less state is created here. The bot registers
+        itself in the database lazily on the first access to DB_ID (which
+        happens inside run()), so constructing or enqueueing a bot no longer
+        opens a database connection.
 
         Args:
             config: Bot-specific configuration dictionary from config.yaml.
@@ -35,21 +44,6 @@ class AbstractDatabot(ABC):
         # Store bot-specific configuration (instance-level, not class-level)
         self.config = config or {}
 
-        self.DATABASE = Database()
-
-        try:
-            db_id = self.DATABASE.register_databot(self.NAME, self.DESCRIPTION, self.VERSION, self.ROLE.value)
-            if db_id is None:
-                print(f"❌ Registration of databot '{self.NAME}' failed – probably higher version already registered?", file=sys.stderr)
-                sys.exit(1)
-        except Exception as e:
-            print(f"❌ Registration error for bot '{self.NAME}': {e}", file=sys.stderr)
-            sys.exit(1)
-
-        self.DB_ID = db_id
-        self.s3storage = S3Storage()
-        print(f"Databot ID:{self.DB_ID} name:{self.NAME} is running...")
-
     @abstractmethod
     def compute(self, image_local_path: str, record: dict) -> Score:
         pass
@@ -61,41 +55,43 @@ class AbstractDatabot(ABC):
         return self.DATABASE.fetch_records(self.DB_ID)
 
     def run(self):
-        try:
-            records = self.selectRecords()
-            # print(records)
-            # exit()
-            for record in records:
-                rec_id = record["id"]
-                thumb_key = record["databot_thumb_filename"]
-                bucket_suffix = record["bucket_suffix"]
-                local_path = None
-                try:
-                    # Vytvoř dočasný soubor pro stažení miniatury
-                    fd, local_path = tempfile.mkstemp(suffix=os.path.splitext(thumb_key)[-1])
-                    os.close(fd)
+        """Process every pending record; connections are borrowed per statement."""
+        records = self.selectRecords()
+        logger.info("%s: %s record(s) to process", self.NAME, len(records) if records else 0)
 
-                    # Stažení miniatury z thumb bucketu s suffixem pro číslování
-                    self.s3storage.download_file_to_path(
-                        BucketType.THUMB,
-                        bucket_suffix,
-                        thumb_key,
-                        local_path
+        for record in records:
+            rec_id = record["id"]
+            thumb_key = record["databot_thumb_filename"]
+            bucket_suffix = record["bucket_suffix"]
+            local_path = None
+            try:
+                if not thumb_key:
+                    raise ValueError(
+                        f"Photo {rec_id} has no databot_thumb_filename, "
+                        "there is nothing to download"
                     )
 
-                    result = self.compute(local_path, record)
+                # Vytvoř dočasný soubor pro stažení miniatury
+                fd, local_path = tempfile.mkstemp(suffix=os.path.splitext(thumb_key)[-1])
+                os.close(fd)
 
-                    self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
-                    # print(f"✅ {rec_id} -> {result}")
-                except Exception as e:
-                    self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
-                    print(f"❌ {rec_id} -> {e}")
-                finally:
-                    if local_path:
-                        try:
-                            os.remove(local_path)
-                        except FileNotFoundError:
-                            pass
+                # Stažení miniatury z thumb bucketu s suffixem pro číslování
+                self.s3storage.download_file_to_path(
+                    BucketType.THUMB,
+                    bucket_suffix,
+                    thumb_key,
+                    local_path
+                )
 
-        finally:
-            self.DATABASE.close()
+                result = self.compute(local_path, record)
+
+                self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
+            except Exception as e:
+                self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
+                logger.error("❌ %s: record %s -> %s", self.NAME, rec_id, e)
+            finally:
+                if local_path:
+                    try:
+                        os.remove(local_path)
+                    except FileNotFoundError:
+                        pass

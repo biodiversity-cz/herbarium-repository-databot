@@ -1,11 +1,14 @@
 import os
 from pathlib import Path
-import urllib.request
 import gzip
 import shutil
 
+import requests
+
 from ultralytics import YOLO, settings
 import logging
+
+from config import config
 
 DEFAULT_WEIGHTS_URL = (
     "https://github.com/rbturnbull/hespi/releases/download/v0.4.0/sheet-component.pt.gz"
@@ -89,6 +92,26 @@ class HespiV1SheetService:
         # Weight management
         # ------------------------------------------------------------------
 
+    def _download(self, url: str, destination: Path) -> None:
+        """Stream a remote file to disk with real timeouts.
+
+        urllib.request.urlretrieve has no timeout at all, so an unresponsive
+        host used to block the worker indefinitely.
+        """
+        timeout = config.get_http_timeout("weights_read_timeout", 300)
+        temporary = destination.with_suffix(destination.suffix + ".part")
+        try:
+            with requests.get(url, stream=True, timeout=timeout) as response:
+                response.raise_for_status()
+                with open(temporary, "wb") as out_file:
+                    for chunk in response.iter_content(chunk_size=1024 * 256):
+                        if chunk:
+                            out_file.write(chunk)
+            temporary.replace(destination)
+        except BaseException:
+            temporary.unlink(missing_ok=True)
+            raise
+
     def _ensure_weights(self) -> str:
         path = Path(self.weights_path)
         if path.exists() and path.stat().st_size > 0:
@@ -99,12 +122,12 @@ class HespiV1SheetService:
 
         if self.weights_url.endswith(".gz"):
             gz_path = Path(str(path) + ".gz")
-            urllib.request.urlretrieve(self.weights_url, gz_path)
+            self._download(self.weights_url, gz_path)
             with gzip.open(gz_path, "rb") as f_in, open(path, "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
             gz_path.unlink()
         else:
-            urllib.request.urlretrieve(self.weights_url, path)
+            self._download(self.weights_url, path)
 
         if not path.exists() or path.stat().st_size == 0:
             raise IOError(f"Failed to download model weights to {path}")
@@ -172,6 +195,11 @@ class HespiV1SheetService:
         annotation_id = 0
         master_width = record["width"]
         master_height = record["height"]
+        if not master_width or not master_height:
+            raise ValueError(
+                f"Record {record.get('id')} has no width/height in the database, "
+                "bounding boxes cannot be scaled to original image"
+            )
 
         for boxes in predictions.boxes:
             conf = float(boxes.conf.cpu().item())

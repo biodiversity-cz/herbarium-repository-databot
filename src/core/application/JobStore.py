@@ -1,11 +1,24 @@
 import uuid
+from collections import deque
 from datetime import datetime
 from threading import Lock
 
+from config import config
+
+
 class JobStore:
+    """In-memory bookkeeping of bot runs (bounded, process local).
+
+    The history is a deque with a fixed maximum length - an unbounded list
+    would grow forever in a long running deployment.
+    """
+
+    DEFAULT_HISTORY_LIMIT = 200
+
     def __init__(self):
         self._running = {}  # map bot_name -> set of run_ids
-        self._history = []  # seznam dictů s běhy
+        history_max = config.get_application_int("history_max", self.DEFAULT_HISTORY_LIMIT)
+        self._history = deque(maxlen=max(10, history_max))
         self._lock = Lock()
 
     def mark_running(self, bot_name: str) -> str:
@@ -32,7 +45,7 @@ class JobStore:
                     run["status"] = "finished"
                     break
 
-    def mark_failed(self, bot_name: str, run_id: str, exc: Exception):
+    def mark_failed(self, bot_name: str, run_id: str, exc: BaseException):
         with self._lock:
             if bot_name in self._running and run_id in self._running[bot_name]:
                 self._running[bot_name].remove(run_id)
@@ -49,8 +62,14 @@ class JobStore:
             return {bot: len(runs) for bot, runs in self._running.items() if runs}
 
     def get_history(self, n=5):
+        try:
+            n = int(n)
+        except (TypeError, ValueError):
+            n = 5
+        if n <= 0:
+            return []
         with self._lock:
-            recent = self._history[-n:]
+            recent = list(self._history)[-n:]
             return [
                 {
                     "id": run["id"],
