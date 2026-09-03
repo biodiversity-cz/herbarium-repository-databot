@@ -61,37 +61,41 @@ class AbstractDatabot(ABC):
         return self.DATABASE.fetch_records(self.DB_ID)
 
     def run(self):
-        records = self.selectRecords()
-        # print(records)
-        # exit()
-        for record in records:
-            rec_id = record["id"]
-            thumb_key = record["databot_thumb_filename"]
-            bucket_suffix = record["bucket_suffix"]
-            local_path = None
-            try:
-                # Vytvoř dočasný soubor pro stažení miniatury
-                fd, local_path = tempfile.mkstemp(suffix=os.path.splitext(thumb_key)[-1])
-                os.close(fd)
-                
-                # Stažení miniatury z thumb bucketu s suffixem pro číslování
-                self.s3storage.download_file_to_path(
-                    BucketType.THUMB, 
-                    bucket_suffix, 
-                    thumb_key,
-                    local_path
-                )
+        try:
+            records = self.selectRecords()
+            # print(records)
+            # exit()
+            for record in records:
+                rec_id = record["id"]
+                thumb_key = record["databot_thumb_filename"]
+                bucket_suffix = record["bucket_suffix"]
+                local_path = None
+                try:
+                    # Vytvoř dočasný soubor pro stažení miniatury
+                    fd, local_path = tempfile.mkstemp(suffix=os.path.splitext(thumb_key)[-1])
+                    os.close(fd)
 
-                result = self.compute(local_path, record)
+                    # Stažení miniatury z thumb bucketu s suffixem pro číslování
+                    self.s3storage.download_file_to_path(
+                        BucketType.THUMB,
+                        bucket_suffix,
+                        thumb_key,
+                        local_path
+                    )
 
-                self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
-                # print(f"✅ {rec_id} -> {result}")
-            except Exception as e:
-                self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
-                print(f"❌ {rec_id} -> {e}")
-            finally:
-                if local_path:
-                    try:
-                        os.remove(local_path)
-                    except FileNotFoundError:
-                        pass
+                    result = self.compute(local_path, record)
+
+                    self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
+                    # print(f"✅ {rec_id} -> {result}")
+                except Exception as e:
+                    self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
+                    print(f"❌ {rec_id} -> {e}")
+                finally:
+                    if local_path:
+                        try:
+                            os.remove(local_path)
+                        except FileNotFoundError:
+                            pass
+
+        finally:
+            self.DATABASE.close()

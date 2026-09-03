@@ -82,22 +82,25 @@ class AbstractUrlDatabot(ABC):
         Main execution method that fetches records from the database,
         retrieves data from URLs, processes it, and saves results.
         """
-        records = self.selectRecords()
-        for record in records:
-            rec_id = record["id"]
-            try:
-                # Get the URL for this record
-                url = self.get_url(record)
-                
-                # Fetch data from the URL
-                data = self.fetch_data_from_url(url)
-                
-                # Process the data
-                result = self.compute(data)
-                
-                # Save successful result
-                self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
-            except Exception as e:
-                # Save error result
-                self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
-                print(f"❌ {rec_id} -> {e}")
+        try:
+            records = self.selectRecords()
+            for record in records:
+                rec_id = record["id"]
+                try:
+                    # Get the URL for this record
+                    url = self.get_url(record)
+
+                    # Fetch data from the URL
+                    data = self.fetch_data_from_url(url)
+
+                    # Process the data
+                    result = self.compute(data)
+
+                    # Save successful result
+                    self.DATABASE.save_success_result(self.DB_ID, rec_id, result)
+                except Exception as e:
+                    # Save error result
+                    self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
+                    print(f"❌ {rec_id} -> {e}")
+        finally:
+            self.DATABASE.close()

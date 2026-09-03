@@ -14,3 +14,4 @@ class DatabaseConnectionTestDatabot(AbstractDatabot):
 
     def run(self):
         print(f"Connection successful")
+        self.DATABASE.close()

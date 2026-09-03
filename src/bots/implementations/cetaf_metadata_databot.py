@@ -20,25 +20,28 @@ class CetafMetadataDatabot(AbstractUrlDatabot):
         return client.fetch_sid_as_dict(url)
 
     def run(self):
-        records = self.selectRecords()
-        for record in records:
-            rec_id = record["id"]
-            try:
-                # Get the URL for this record
-                url = self.get_url(record)
+        try:
+            records = self.selectRecords()
+            for record in records:
+                rec_id = record["id"]
+                try:
+                    # Get the URL for this record
+                    url = self.get_url(record)
 
-                # Fetch data from the URL
-                data = self.fetch_data_from_url(url)
+                    # Fetch data from the URL
+                    data = self.fetch_data_from_url(url)
 
-                # Process the data
-                result = self.compute(data)
+                    # Process the data
+                    result = self.compute(data)
 
-                # UPSERT successful result
-                self.DATABASE.upsert_success_result(self.DB_ID, rec_id, result)
-            except Exception as e:
-                # Save error result
-                self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
-                print(f"❌ {rec_id} -> {e}")
+                    # UPSERT successful result
+                    self.DATABASE.upsert_success_result(self.DB_ID, rec_id, result)
+                except Exception as e:
+                    # Save error result
+                    self.DATABASE.save_error_result(self.DB_ID, rec_id, str(e))
+                    print(f"❌ {rec_id} -> {e}")
+        finally:
+            self.DATABASE.close()
 
 
 
