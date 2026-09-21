@@ -12,7 +12,7 @@ class Database(BaseDatabase):
                                    AND dr.databot_id = %s
             WHERE p.status_id > 2 -- skip waiting/unprocessed
               AND dr.id IS NULL
-            ORDER BY p.id ASC
+            ORDER BY p.id DESC
                 LIMIT %s
             """,
             (databot_id, limit)
